@@ -1,0 +1,13 @@
+(princ "Bondar Victoria IP-63")
+(print "Lab 1")
+(write-line " ")
+(write-line " ")
+
+(SETQ l1 '(G55 G66 G777))
+(SETQ l2 '(9 (F G) I))
+(SETQ l3 '(N I L T D J(II JJ)))
+
+(princ "Task-1")
+((LAMBDA(x y z)
+    (SETQ res1(LIST (CAR x) (CAR y) (CAR z)))) 
+    (l1 l2 l3))
