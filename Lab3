@@ -46,11 +46,22 @@
 ;	Task 3.3
 ;	Решить задачу из лабораторной работы №2 с применением локальных определений LAMBDA и LET.
 
-;   Есть список lst и два произвольных лисповских объекта obj1 и obj2. Описать
-;   функцию, которая формирует новый список путем замены в списке lst всех
-;   вхождений объекта obj1 объектом obj2.
+;	Написать программу, которая в исходном списке заменяет все элементы-целые числа остатками от их деления на 2. 
+;	Список может содержать подсписки произвольной глубины вложения. 
 
+(defun numChange (lst)
+	(if (NULL lst) nil 
+		(let ((head (car lst)))
+			(cons (if (integerp head) (mod head 2) 
+						(if (listp head) (numChange head) head )
+				   ) 
+				(change-elements (cdr lst) ) 
+			 ) 
+		 )
+	 )
+)
 
+(print (numChange '(2 B '(5 4 '(9 C) ) 5 6 7 5.4 A)) )
 
 ;	Task 3.4
 ;	Реализовать программу - простейший интерпретатор лисповских программ . На вход 
@@ -63,12 +74,79 @@
 ;	−  В программе должны использоваться локальные определения; 
 ;	−  Не допускается использование встроенной функции-интерпретатора EVAL; 
 
+(defun eval1(e a) 
+	(COND
+		 ((atom e) (cdr(assoc e a)) )
+		 ((eq (car e) 'QUOTE) (cadr e))
+		 ((eq (car e) 'COND) (evcon(cdr e) a))
+		 (t (apply1 (car e) (evlis(cdr e) a) a) )
+	 ) 
+ )
 
+(defun apply1 (fn x a) 
+	(let ( (frst (car x)) (scnd (cadr x)) )
+    	(cond  
+             ((atom fn)(cond  
+                           ((eq fn '+)(+ frst scnd)) 
+                           ((eq fn '-)(- frst scnd)) 
+                           ((eq fn '*)(* frst scnd)) 
+                           ((eq fn '/)(/ frst scnd)) 
+    					   ((eq fn 'CAR)(car frst)) 
+    					   ((eq fn 'CDR)(cdr frst)) 
+    					   ((eq fn 'CONS)(cons frst scnd)) 
+    					   ((eq fn 'ATAN)(atan frst))
+    					   ((eq fn 'ATOM)(atom frst)) 
+    					   ((eq fn 'EQ)(eq frst (scnd x)) ) 
+    					   ((QUOTE  T)(apply1 (eval1 fn a) x a)) 
+    				   ) 
+    		 ) 
+        ) 
+    )
+)
+
+(defun evlis (m a) 
+    (COND
+		((null m) nil)
+		(t 
+			(cons 
+				(eval1 (car m) a)
+				(evlis (cdr m) a) 
+			)
+		) 
+	) 
+)
+
+(defun evcon (c a) 
+	(COND  
+        ((eval1 (caar  c) a) 
+			(eval1 (cadar c) a) 
+		) 
+        (t 
+		 	(evcon (cdr c) a) 
+		) 
+	)
+)
+ 
+(defun my-eval (e)   
+	(eval1 e '((Nil . Nil)))
+) 
+ 
+(print 
+    (my-eval 
+        '(cons (atan (car '(2 1))) (cdr '(1 2 3 4 5))  )
+    )
+)
+
+(print 
+    (my-eval 
+        '(cons(car(cdr '(e r t w))) (cons (cdr '(g h 6)) nil))
+    )
+)
 
 ;	Task 3.5
 ;	Дополнить интерпретатор из задания 4 в соответствии с вариантом индивидуального задания.
 
-;   Функция вычисления корня n-й степени из числа x.
+;   Арксинус
 
  
 
@@ -76,14 +154,126 @@
 ;	Написать программу обработки текста естественного языка с использованием отображающих функционалов в соответствии с заданием из таблицы. 
 ;	Текст рекомендуется представлять списком списков : каждое предложение - список слов, весь текст - список предложений.
 
-;   Дан текст. Сделать заглавной каждую букву каждого слова, начинающегося с
-;   заглавной буквы.
+;   	Сформировать список, информирующий о вхождении заданной литеры в текст в 
+;	текст в виде ((<0 1 5 2 0>) (<3 0 1 5 2 0 1 0>)...). Цифры указывают количество 
+;	вхождений литеры в каждое слово предложения. 
 
+(defun count-litera (str litera)
+	(count-litera-in-char-lst (coerce str 'list) litera)
+)
+
+(defun count-litera-in-char-lst (charlst litera)
+	(if (NULL charlst) 
+		0
+		(+ (char-eq-to-num (CAR charlst) litera) (count-litera-in-char-lst (CDR charlst) litera) )
+	 )
+)
+
+(defun char-eq-to-num (litera1 litera2)
+	(if (char-equal litera1 litera2) 1 0)
+)
+
+(defun count-of-literas-in-lst (lst-of-strings litera) 
+		(mapcar 
+			(lambda (x) (count-litera x litera) ) 
+			lst-of-strings
+		) 
+)
+
+(defun count-of-literas-in-text (text litera) 
+		(mapcar 
+			(lambda (x) (count-of-literas-in-lst x litera) ) 
+			text
+		) 
+)
+
+(print 
+	(count-of-literas-in-text 
+		'( ("Hello" "world") ("I'm" "staying" "for" "a" "little" "while")) #\l 
+	)
+)
 
 
 ;	Task 3.7
 ;	Дана фраза украинского (русского) языка. Написать программу, которая разбивает каждое слово фразы на слоги.
 
+(defun split (char str &optional (lst nil) (accm ""))
+  (cond
+		((= (length str) 0) (reverse (cons accm lst)))
+		(t
+		 (let ((c (char str 0)))
+		   (if (equal c char)
+				(split char (subseq str 1) (cons accm lst) "")
+				(split char (subseq str 1) lst (concatenate 'string accm (string c)))
+			)
+		  )
+		) 
+	)
+)
+ 
+(defun vowelsp (chr)
+  (member chr '(#\а #\е #\ё #\и #\о #\у #\ы #\э #\я #\ю))
+)
+ 
+(defun insert-hyphen (s)
+      (cond ((vowelsp s)  (cons s '(-)))
+            (t s)
+       )
+)
+ 
+(defun divide (word)
+    (cond
+      ((null word) nil)
+      (t (cons (insert-hyphen (car word)) (divide (cdr word))) )
+     )
+)
+ 
+(defun transform (lst)
+    (cond
+      ((null lst) nil)
+      ((atom (CAR lst)) (cons (list (CAR lst) ) (transform (CDR lst) ) ) ) 
+      (t (cons (CAR lst) (transform (CDR lst) ) ) )
+    )
+)
+ 
+(defun del (lst)
+   (reverse (rem-q (reverse lst) ) )
+)
+
+(defun rem-q (lst)
+    (cond
+      ((null lst) nil)
+      ((eq (CAR lst) '-) (CDR lst) ) 
+      (t (cons (CAR lst) (rem-q (CDR lst) ) ) )
+    )
+)
+
+ 
+(defun divide-word (lst)
+    (pack (del (apply #'append (transform (divide lst))) ) )
+)
+
+(defun divide-list (lst) 
+		(mapcar 
+			(lambda (x) (divide-word (coerce x 'list )) ) 
+			lst
+		)	
+)
+
+(defun pack (lst)
+       (cond 
+            ( (null lst) "" )
+            (t (concatenate 'string (string (car lst)) (pack (cdr lst)) ))
+       )
+)
+
+(defun divide-phrase (str) 
+	(divide-list
+	    (split #\space str) 
+	)
+)
+
+(print  (divide-phrase  "Жить в твоей голове"  ))
 
 
 ;	Task 3.8
@@ -93,9 +283,55 @@
 ;	Каждое слово преобразуется в пару слов. Первое слово есть конкатенация первого слога ключевого слова и части переводимого слова, оставшейся 
 ;	после отделения от него первого слога. Второе слово есть конкатенация первого слога переводимого слова и части ключевого слова, оставшейся 
 ;	после отделения от него первого слога.
-;   Написать программу перевода предложения украинского языка на заданный таким образом “тайный” язык.
+;       Написать программу перевода предложения украинского языка на заданный таким образом “тайный” язык.
 
+(defun vowelsp (chr)
+  (member chr '(#\а #\е #\ё #\и #\о #\у #\ы #\э #\я #\ю))
+)
 
+(defun first-syllable (word)
+	(subseq 
+	    word 0 (index-of-first-syllable word)
+	)
+)
+
+(defun part-of-word-without-first-syllable (word)
+	(subseq 
+	    word (index-of-first-syllable word)
+	)
+)
+
+(defun index-of-first-syllable (word &optional (index 0))
+	(cond
+		((>= index (- (length word) 1)) index )
+		( (vowelsp (char word index) ) (+ index 1) )
+		( t (index-of-first-syllable word (+ index 1) ) )
+	)
+)
+
+(defun transform (word secret-word)
+    (list
+        (concatenate 
+            'string (first-syllable secret-word) (part-of-word-without-first-syllable word)
+        )
+        (concatenate 
+            'string (first-syllable word) (part-of-word-without-first-syllable secret-word)
+        )
+    )
+)
+
+(defun translate-to-secret-language (list-of-words secret-word)
+		(mapcar 
+			(lambda (x) 
+				(transform x secret-word)
+			) 
+			list-of-words
+		)	
+)
+
+(print
+    (translate-to-secret-language '("слово" "водопад" "велосипед") "сплетня")
+)
 
 ;	Task 3.9
 ;   Написать программу в соответствии с заданием.
@@ -104,3 +340,38 @@
 ;   семантических эквивалентов по словарю в зависимости от значения
 ;   трехбуквенного концы слова (см. [2]). Если слово содержит менее трех букв,
 ;   то замену не производить.
+
+(setq lexical-dictionary 
+	'(
+		("дождь" "Magn" "ливень")
+		("кавалерия" "Osv" "конница")
+		("смелый" "Rdir" "храбрый")
+		("идти" "Kapt" "шагать")
+	) 
+)
+
+(defun transform-word (word &optional (lexdict lexical-dictionary))
+    (let (
+            (head (CAR lexdict))
+        )
+        (cond
+            ((null lexdict) word)
+            ( (equal (CAR head) word) (CDR head) )
+            (t (transform-word word (CDR lexdict))) 
+        )
+    )
+)
+
+(defun transform-text (text)
+		(mapcar 
+			(lambda (x) 
+				(transform-word x)
+			) 
+			text
+		)	
+)
+
+
+(print
+    (transform-text '("идти" "день" "кот" "смелый" "вода" "кавалерия" "дождь") )
+)
