@@ -1,0 +1,149 @@
+%   Скласти на мові Prolog дерево родинних відношень, використовуючи
+%   предикат roditel з двома параметрами: ім'я одного з батьків та ім'я дитини.
+roditel('Іван', 'Марія').
+roditel('Іван', 'Василь').
+roditel('Ганна', 'Марія').
+roditel('Ганна', 'Василь').
+roditel('Олег', 'Тетяна').
+roditel('Олег', 'Марина').
+roditel('Ніна', 'Тетяна').
+roditel('Ніна', 'Марина').
+roditel('Василь', 'Євгенія').
+roditel('Василь', 'Максим').
+roditel('Тетяна', 'Євгенія').
+roditel('Тетяна', 'Максим').
+roditel('Микита', 'Христина').
+roditel('Оксана', 'Христина').
+roditel('Максим', 'Павло').
+roditel('Максим', 'Роберт').
+roditel('Христина', 'Павло').
+roditel('Христина', 'Роберт').
+
+%   Написати на мові Prolog та запустити наступні запити:
+%      •“Хто є і батьками, і має батьків”
+%      •“Хто не має дітей”
+
+
+%   Програму доповнити новими фактами, що дозволяють побудувати правила
+%   для визначення наступних цілей-предикатів:
+
+%      •батько
+father('Іван', 'Марія').
+father('Іван', 'Василь').
+father('Олег', 'Тетяна').
+father('Олег', 'Марина').
+father('Василь', 'Євгенія').
+father('Василь', 'Максим').
+father('Микита', 'Христина').
+father('Максим', 'Павло').
+father('Максим', 'Роберт').
+
+%      • мати
+mother('Ганна', 'Марія').
+mother('Ганна', 'Василь').
+mother('Ніна', 'Тетяна').
+mother('Ніна', 'Марина').
+mother('Тетяна', 'Євгенія').
+mother('Тетяна', 'Максим').
+mother('Оксана', 'Христина').
+mother('Христина', 'Павло').
+mother('Христина', 'Роберт').
+
+%      • дочка
+daughter('Марія','Іван').
+daughter('Марія','Ганна').
+daughter('Тетяна','Олег').
+daughter('Тетяна','Ніна').
+daughter('Марина','Олег').
+daughter('Марина','Ніна').
+daughter('Євгенія','Василь').
+daughter('Євгенія','Тетяна').
+daughter('Христина','Микита').
+daughter('Христина','Оксана').
+
+%      • син
+son('Василь','Іван').
+son('Василь','Ганна').
+son('Максим','Василь').
+son('Максим','Тетяна').
+son('Павло','Максим').
+son('Павло','Христина').
+son('Роберт','Максим').
+son('Роберт','Христина').
+
+%      • брат
+brother(X,Y):-son(X,Z),mother(Z,Y).
+
+%      • сестра
+sister(X,Y):-daughter(X,Z),mother(Z,Y).
+
+%      • дядько
+uncle(X,Y) :- brother(X, Z),father(Z,Y). 
+uncle(X,Y) :- brother(X, Z),mother(Z,Y). 
+
+%      • тітка
+aunt(X,Y):-sister(X,Z),father(Z,Y). 
+aunt(X,Y):-sister(X,Z),mother(Z,Y). 
+
+%      • дід
+grandfather(X,Y):-son(Z,X),father(Z,Y). 
+grandfather(X,Y):-daughter(Z,X),father(Z,Y). 
+
+%      • баба
+grandmother(X,Y):-mother(X,Z),son(Y,Z). 
+grandmother(X,Y):-mother(X,Z),daughter(Y,Z). 
+
+%      • онук
+grandson(X,Y):-son(X,Z),daughter(Z,Y). 
+grandson(X,Y):-son(X,Z),son(Z,Y). 
+
+%      • онучка
+granddaughter(X,Y):-daughter(X,Z),daughter(Z,Y). 
+granddaughter(X,Y):-daughter(X,Z),son(Z,Y). 
+
+%      • небіж
+nephew(X,Y):-son(X,Z),sister(Z,Y). 
+nephew(X,Y):-son(X,Z),brother(Z,Y). 
+
+%      • небога
+niece(X,Y):-daughter(X,Z),sister(Z,Y). 
+niece(X,Y):-daughter(X,Z),brother(Z,Y). 
+
+%      • одружені
+married(X,Y):-daughter(Z,X),daughter(Z,Y). 
+married(X,Y):-son(Z,X),son(Z,Y). 
+
+%      • теща
+hismotherinlaw(X,Y):-married(Z,Y),daughter(Z,X),mother(X,Z). 
+
+%      • тесть
+hisfatherinlaw(X,Y):-married(Z,Y),daughter(Z,X),father(X,Z). 
+
+%      • свекруха
+hermotherinlaw(X,Y):-married(Z,Y),son(Z,X),mother(X,Z). 
+
+%      • свекор
+herfatherinlaw(X,Y):-son(Z,X),married(Z,Y),father(X,Z). 
+
+%      • зять
+soninlaw(X,Y):-married(X,Z),father(Z,Y). 
+
+%      • невістка
+daughterinlaw(X,Y):-married(X,Z),son(Z,Y). 
+
+%      • свояк
+brotherinlaw(X,Y):-married(X,Z),sister(Z,D),married(D,Y). 
+
+%      • своячка
+sisterinlaw(X,Y):-sister(X,Z),married(Z,Y),sister(Z,X). 
+
+%      • дівер
+diver(X,Y):-married(Y,Z),brother(X,Z). 
+
+%      • внучатий небіж
+greatnephew(X,Y):-grandson(X,Z),sister(Z,Y). 
+greatnephew(X,Y):-grandson(X,Z),brother(Z,Y). 
+
+%      • внучата небога
+greatniece(X,Y):-granddaughter(X,Z),sister(Z,Y). 
+greatniece(X,Y):-granddaughter(X,Z),brother(Z,Y).
