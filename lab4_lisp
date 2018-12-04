@@ -1,0 +1,69 @@
+(defun make-relay (production type model)
+  (list :production production :type type :model model))
+
+(defvar *db* nil)
+
+; add new record to the database
+(defun add-record (relay)
+  (push relay *db*))
+
+; output data base
+(defun dump-db ()
+  (dolist (relay *db*)
+    (format t "~{~a:~10t~a~%~}~%" relay)))
+
+; select values from database
+(defun select (selector-fn)
+  (remove-if-not selector-fn *db*))
+
+; get type of relay
+(defun type-selector (type)
+  (lambda (relay) (equal (getf relay :type) type)))
+
+; generates expression, that returns all records about relays
+(defun where (&key production type model)
+  (lambda (relay)
+    (and
+      (if production (equal (getf relay :production) production) t)
+      (if type (equal (getf relay :type) type) t)
+      (if model (equal (getf relay :model) model) t))))
+
+; update and use args to set new value
+(defun update (selector-fn &key production type model (ripped nil ripped-p))
+  (setf *db*
+    (mapcar
+      (lambda (row)
+        (when (funcall selector-fn row)
+          (if production (setf (getf row :production) production))
+          (if type (setf (getf row :type) type))
+          (if model (setf (getf row :model) model)))
+        row)
+      *db*)))
+
+; save database
+(defun save-db (filename)
+  (with-open-file (out filename
+                   :direction :output
+                   :if-exists :supersede)
+    (with-standard-io-syntax
+      (print *db* out))))
+
+; load database
+(defun load-db (filename)
+  (with-open-file (in filename)
+    (with-standard-io-syntax
+      (setf *db* (read in)))))
+
+; remove strings from db
+(defun delete-rows (selector-fn)
+  (setf *db* (remove-if selector-fn *db*)))
+
+; search by value
+(defun make-comparison-expr (field value)
+(list 'equal (list 'getf 'relay field) value))
+
+
+; TESTING
+(save-db "dbFile.txt")
+
+(dump-db)
