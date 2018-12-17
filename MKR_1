@@ -1,0 +1,46 @@
+
+;    Method 1
+
+(defun built_in_func (A B C)
+	(intersection (union A B) C))
+
+(built_in_func '(1 2 3) '(3 4 5) '(4 5 6 7))
+
+
+;    Method 2
+
+(defun include (el A)
+	(cond ((NULL A) nil)
+		((eq el (car A)) t)
+		(t (include el (cdr A)))))
+
+(defun my_union (A B)
+	(cond ((NULL A) B)
+		((NULL B) A)
+		((include (car A) B)
+			(my_union (cdr A) B))
+		(t (cons (car A) (my_union (cdr A) B)))))
+
+(defun my_intersect (A B)
+	(cond ((NULL A) nil)
+		((NULL B) nil)
+		((include (car A) B)
+			(cons (car A) (my_intersect (cdr A) B)))
+		(t (my_intersect (cdr A) B))))
+
+(defun my_func (A B C)
+	(my_intersection (my_union A B) C))
+
+(my_func '(1 2 3) '(3 4 5) '(4 5 6 7))
+
+
+;    Method 3
+
+(defun only_func (A B C)
+	(cond ((null C) nil)
+		((or (include (car C) A)
+			(include (car C) B))
+			(cons (car C) (only_func A B (cdr C))))
+		(t (only_func A B (cdr C)))))
+
+(only_func '(1 2 3) '(2 4 5) '(1 4 7 8))
