@@ -4,7 +4,7 @@
 (defun built_in_func (A B C)
 	(intersection (union A B) C))
 
-(built_in_func '(1 2 3) '(3 4 5) '(4 5 6 7))
+(print (built_in_func '(1 2 3) '(3 4 5) '(1)))
 
 
 ;    Method 2
@@ -31,7 +31,7 @@
 (defun my_func (A B C)
 	(my_intersection (my_union A B) C))
 
-(my_func '(1 2 3) '(3 4 5) '(4 5 6 7))
+(print (my_func '(1 2 3) '(3 4 5) '(1 2)))
 
 
 ;    Method 3
@@ -43,4 +43,4 @@
 			(cons (car C) (only_func A B (cdr C))))
 		(t (only_func A B (cdr C)))))
 
-(only_func '(1 2 3) '(3 4 5) '(4 5 6 7))
+(print (only_func '(1 2 3) '(3 4 5) '(1 2 3)))
